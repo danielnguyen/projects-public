@@ -8,42 +8,26 @@ The second problem turned out to be nearly as interesting as the first.
 
 We did not begin CCP with a complete methodology for AI-assisted engineering. We built one because the project kept exposing weaknesses in the way humans and coding agents work together.
 
-At first, the workflow was straightforward: discuss a feature, ask an agent to plan it, ask another agent to implement it, review the result, and move on. This worked well while the system was small enough to hold in one conversation and a few files.
-
-Then the project grew.
-
-The architecture spread across multiple services. Specifications accumulated. Earlier decisions gained exceptions. A new conversation could contain a good summary of the project and still miss one sentence in a specification that changed the correct implementation. Agents could read thousands of lines, produce a confident answer, and quietly stop reasoning about something they had seen near the beginning.
-
-So we added specifications.
-
-The specifications reduced one kind of drift, but introduced another. Some requirements were mandatory. Others were examples, possible endpoints, proposed schemas, or future-state ideas. Agents did not always distinguish between them. A diagram labelled as proposed architecture could turn into a supposedly required subsystem. A possible data model could become a migration plan nobody actually needed.
-
-So we added conformance reviews.
-
-Those reviews found real gaps, but they also taught us that an audit can be wrong in a very polished way. Some findings correctly noticed that the implementation did not match an example, then incorrectly concluded that the example was mandatory. Fixing every finding literally would have made the system more complicated without making it more correct.
-
-So we added correction categories. A mismatch could require an implementation change, a specification clarification, a deliberate deferral, or a rejection of the finding itself. The question stopped being “Does the code look like the document?” and became “What behaviour is actually required, and what evidence do we have?”
-
-Then we discovered another uncomfortable truth: an agent's completion report is not evidence. It may be accurate, but it is written by the same agent that made the change. It can overlook an unrelated file, overstate enforcement, repeat the PR description instead of inspecting the diff, or report that a concept exists without tracing whether anything consumes it.
-
-So review became a separate activity. Reviews had to inspect the actual diff, the relevant specifications, the current implementation, and the tests. Closeout became separate again: verify what merged, what passed, what remained deferred, and whether the final repository state told the truth.
-
-Eventually, the process itself became too important to live in conversation history. We had accumulated rules about reading specs, preserving service boundaries, using short-lived branches, distinguishing guidance from enforcement, testing negative cases, and refusing to invent future architecture. If those rules existed only in our prompts, they would drift too.
-
-So the agent workflow moved into source control.
-
-The progression looked like this:
-
 1. We used LLMs to help build a system.
+   - The early workflow was simple: discuss a feature, plan it, implement it, review it, and move on.
 2. We encountered drift and added specifications.
+   - As the architecture spread across services, conversation summaries stopped being precise enough to govern implementation.
 3. We discovered that specifications could also drift or be misread.
+   - Mandatory behaviour, examples, proposed schemas, and future-state ideas were too easy to treat as equivalent.
 4. We added conformance review.
+   - We needed a deliberate comparison between intended behaviour and the code that actually existed.
 5. We discovered that audits could overstate findings.
+   - A polished review could correctly notice a mismatch and still be wrong about whether the mismatched example was required.
 6. We added evidence-based correction categories.
+   - Findings could now lead to an implementation correction, a specification clarification, a deferral, or rejection rather than automatic code changes.
 7. We discovered that agent completion reports were insufficient.
+   - The same agent that made a change could overlook files, repeat the intended design, or overstate what the implementation enforced.
 8. We added independent diff review, validation, and closeout.
+   - Review inspected the actual change; closeout separately verified what merged, what passed, and what remained unfinished.
 9. We discovered that the workflow itself depended too heavily on conversation memory.
+   - Rules about specs, service boundaries, testing, and review were too important to survive only as prompts and remembered conventions.
 10. We moved the workflow into version-controlled governance.
+    - The operating rules now live beside the code and specifications, where agents and humans can inspect and revise them.
 
 The result is more than a set of safeguards for one AI project. It is an emerging method for specification-driven, evidence-checked, AI-assisted software development across long-running, multi-repository systems.
 
