@@ -8,32 +8,6 @@ The second problem turned out to be nearly as interesting as the first.
 
 We did not begin CCP with a complete methodology for AI-assisted engineering. We built one because the project kept exposing weaknesses in the way humans and coding agents work together.
 
-At first, the workflow was straightforward: discuss a feature, ask an agent to plan it, ask another agent to implement it, review the result, and move on. This worked well while the system was small enough to hold in one conversation and a few files.
-
-Then the project grew.
-
-The architecture spread across multiple services. Specifications accumulated. Earlier decisions gained exceptions. A new conversation could contain a good summary of the project and still miss one sentence in a specification that changed the correct implementation. Agents could read thousands of lines, produce a confident answer, and quietly stop reasoning about something they had seen near the beginning.
-
-So we added specifications.
-
-The specifications reduced one kind of drift, but introduced another. Some requirements were mandatory. Others were examples, possible endpoints, proposed schemas, or future-state ideas. Agents did not always distinguish between them. A diagram labelled as proposed architecture could turn into a supposedly required subsystem. A possible data model could become a migration plan nobody actually needed.
-
-So we added conformance reviews.
-
-Those reviews found real gaps, but they also taught us that an audit can be wrong in a very polished way. Some findings correctly noticed that the implementation did not match an example, then incorrectly concluded that the example was mandatory. Fixing every finding literally would have made the system more complicated without making it more correct.
-
-So we added correction categories. A mismatch could require an implementation change, a specification clarification, a deliberate deferral, or a rejection of the finding itself. The question stopped being “Does the code look like the document?” and became “What behaviour is actually required, and what evidence do we have?”
-
-Then we discovered another uncomfortable truth: an agent's completion report is not evidence. It may be accurate, but it is written by the same agent that made the change. It can overlook an unrelated file, overstate enforcement, repeat the PR description instead of inspecting the diff, or report that a concept exists without tracing whether anything consumes it.
-
-So review became a separate activity. Reviews had to inspect the actual diff, the relevant specifications, the current implementation, and the tests. Closeout became separate again: verify what merged, what passed, what remained deferred, and whether the final repository state told the truth.
-
-Eventually, the process itself became too important to live in conversation history. We had accumulated rules about reading specs, preserving service boundaries, using short-lived branches, distinguishing guidance from enforcement, testing negative cases, and refusing to invent future architecture. If those rules existed only in our prompts, they would drift too.
-
-So the agent workflow moved into source control.
-
-The progression looked like this:
-
 1. We used LLMs to help build a system.
 2. We encountered drift and added specifications.
 3. We discovered that specifications could also drift or be misread.
