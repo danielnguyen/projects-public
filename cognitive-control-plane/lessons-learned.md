@@ -19,7 +19,7 @@ We did not begin CCP with a complete methodology for AI-assisted engineering. We
 5. We discovered that audits could overstate findings.
    - A polished review could correctly notice a mismatch and still be wrong about whether the mismatched example was required.
 6. We added evidence-based correction categories.
-   - Findings could now lead to an implementation correction, a specification clarification, a deferral, or rejection rather than automatic code changes.
+   - Findings could lead to an implementation correction, a specification clarification, a deferral, or rejection rather than automatic code changes.
 7. We discovered that agent completion reports were insufficient.
    - The same agent that made a change could overlook files, repeat the intended design, or overstate what the implementation enforced.
 8. We added independent diff review, validation, and closeout.
@@ -32,8 +32,6 @@ We did not begin CCP with a complete methodology for AI-assisted engineering. We
 The result is more than a set of safeguards for one AI project. It is an emerging method for specification-driven, evidence-checked, AI-assisted software development across long-running, multi-repository systems.
 
 ## The five lessons that mattered most
-
-These are the lessons that changed how we work most directly.
 
 ### 1. [Memory is not a source of truth](#1-memory-is-not-a-source-of-truth)
 
@@ -64,7 +62,7 @@ Specifications reduce ambiguity, but they are not magically precise. They must s
 5. [Specifications can drift too](#5-specifications-can-drift-too)
 6. [Test what must not happen](#6-test-what-must-not-happen)
 7. [A plan must be executable](#7-a-plan-must-be-executable)
-8. [Service boundaries matter](#8-service-boundaries-matter)
+8. [Service boundaries need contracts](#8-service-boundaries-need-contracts)
 9. [Traces must tell the truth](#9-traces-must-tell-the-truth)
 10. [Do not manufacture conformance](#10-do-not-manufacture-conformance)
 11. [Defense-in-depth is not the primary control](#11-defense-in-depth-is-not-the-primary-control)
@@ -88,241 +86,321 @@ Specifications reduce ambiguity, but they are not magically precise. They must s
 
 ### What happened
 
-A new cluster often began with a summary of earlier work. The summary was usually good. It was also sometimes one revision behind, missing a boundary condition, or based on an architecture that had already changed.
+New work often began from a summary of previous conversations. Those summaries were useful, but they could be one decision behind or omit a small constraint that changed the correct implementation.
 
-That is enough to send an implementation in the wrong direction while everyone involved feels well informed.
+A confident summary made the problem worse because it felt authoritative.
 
 ### What we changed
 
-Every plan, implementation, review, and closeout now starts by reading the exact specifications and current code for the affected area. Conversation memory provides orientation, but repository evidence decides the work.
+Before planning or changing code, we read the exact specifications and current implementation for the affected area. Plans list the files and specifications they rely on so reviewers can check the same sources.
+
+Conversation memory is used to find the right place to look. It does not decide what the system should do.
 
 ### What we learned
 
-Long-running projects cannot rely on reconstructed context, no matter how articulate the reconstruction sounds. Memory is a map. The repository is the terrain.
+The repository is the source of truth. Conversation history is only a guide to it.
 
 ## 2. More context is not always better context
 
 ### What happened
 
-As CCP grew, the natural response was to give agents more context: more specifications, more history, more architecture, more previous decisions.
+As the project grew, we responded by giving agents more context: more specifications, more history, more architecture, and more previous decisions.
 
-That helped until it did not. Large context windows can hide omission. The agent appears to have seen everything, but a crucial distinction from several thousand tokens ago may no longer influence the answer.
+This created a new failure mode. The answer could be somewhere in the prompt, but buried deeply enough that it no longer affected the result.
 
 ### What we changed
 
-Tasks are now bounded around exact specifications, repositories, files, implementation seams, non-goals, tests, and exit criteria. We stopped asking an agent to “understand all of CCP” before making a small change.
+Each task now gets a bounded working set:
+
+- the exact specifications involved
+- the repositories and files likely to change
+- the current implementation seam
+- explicit non-goals
+- compatibility constraints
+- required tests and exit criteria
+
+We no longer ask an agent to understand the entire system before making a local change.
 
 ### What we learned
 
-Context quality matters more than context volume. A carefully chosen slice of the system is often safer than an enormous prompt that contains the answer somewhere inside it.
+Useful context is selected context. More text does not guarantee more understanding.
 
 ## 3. Agent self-report is not verification
 
 ### What happened
 
-Agents routinely returned polished completion reports: files changed, tests passed, requirements satisfied, PR ready.
+Agents produced polished completion reports listing files changed, tests passed, and requirements satisfied.
 
-Most were accurate. Some were subtly incomplete. A report could omit a changed file, repeat an intended design rather than the implemented one, or declare a policy enforced when the code only produced guidance.
+Most reports were accurate. Some omitted files, described the intended design rather than the implemented behaviour, or claimed enforcement where the code only added guidance.
 
 ### What we changed
 
-Review became independent from execution. It inspects the actual diff, current code, specifications, tests, and runtime evidence. Closeout separately verifies merged PRs, deferred items, and final conformance.
+Execution and review are separate steps. Review checks:
+
+- the actual diff
+- the relevant specifications
+- the current code path
+- the tests that ran
+- the final repository state
+
+Closeout then confirms what merged, what passed, and what remains deferred.
 
 ### What we learned
 
-An agent's report is a claim made by the author of the change. Treat it the way you would treat any author's summary: useful, but not a substitute for review.
+A completion report is a claim from the author of the change. It is useful, but it is not proof.
 
 ## 4. Guidance is not enforcement
 
 ### What happened
 
-CCP frequently produced the right policy decision before it had a real mechanism to enforce that decision.
+The system could produce the correct policy decision without having a mechanism that forced downstream code to obey it.
 
-A persona policy might say that retrieval should stay inside one scope. A prompt might instruct the model not to use unrelated memory. A trace might record the intended restriction. Meanwhile, a downstream service could still perform the broader retrieval.
-
-The system knew the rule. It did not yet enforce the rule.
+For example, a policy could say that a persona must use restricted memory while another service still performed a broader search. The model was told the rule, but the operation had already happened.
 
 ### What we changed
 
-We began describing controls precisely:
+We now describe each control by what it actually does:
 
-- request-boundary prevention
-- runtime enforcement
-- result-boundary suppression
-- prompt guidance
-- trace-only behaviour
+- **request prevention** stops an unsafe operation before it starts
+- **runtime enforcement** rejects or constrains an operation while it runs
+- **result filtering** removes unsafe results after the operation
+- **prompt guidance** tells the model how it should behave
+- **trace-only behaviour** records a decision without changing execution
 
-A capability is only called enforced when a concrete boundary prevents or rejects the prohibited operation and tests prove it.
+We call something enforced only when code at a real boundary prevents or rejects the prohibited behaviour, and tests prove that it does.
 
 ### What we learned
 
-“The model was told not to” is not an enforcement mechanism. Neither is “the trace says it should not.”
+“The model was told not to” is not enforcement. Neither is “the trace says it should not.”
 
 ## 5. Specifications can drift too
 
 ### What happened
 
-Specifications solved many problems, but not all specification text carried the same weight. Some documents mixed mandatory behaviour with possible endpoints, proposed tables, illustrative schemas, and future-state architecture.
+Some specifications mixed several kinds of information:
 
-Agents understandably treated detailed examples as instructions. The more concrete the example looked, the more likely it was to become accidental scope.
+- required behaviour
+- example endpoints
+- proposed schemas
+- illustrative architecture
+- future-state ideas
+
+Detailed examples looked authoritative, so agents sometimes implemented them as requirements even when a simpler design already satisfied the intended behaviour.
 
 ### What we changed
 
-Specifications now distinguish required behaviour from proposed design. Reviews ask whether a statement is mandatory, illustrative, optional, or deferred before turning it into code.
+Specifications now label statements by intent. A reader should be able to tell whether something is required, optional, illustrative, proposed, or deferred.
+
+Reviews check that classification before turning text into code.
 
 ### What we learned
 
-A specification is not automatically unambiguous because it is written down. Good specs explain not only what the system must do, but which parts of the document are allowed to change.
+Writing something down does not make it unambiguous. A good specification explains both what is required and what is allowed to vary.
 
 ## 6. Test what must not happen
 
 ### What happened
 
-Happy-path tests showed that the system could classify a turn, retrieve context, apply a policy, or produce a response. They did not always prove that stale context, broader retrieval, disabled artifacts, or unsupported intent classes were excluded.
+Happy-path tests showed that the system could classify a turn, retrieve memory, apply a policy, or produce a response.
 
-Those negative cases were where the real behavioural failures lived.
+They did not always prove that the system avoided stale context, broad retrieval, disabled artifact searches, or unsupported classifications.
 
 ### What we changed
 
-Regression coverage increasingly focused on forbidden outcomes:
+We added tests for prohibited outcomes. Examples include:
 
-- an older assistant question must not classify a later response as confirmation
-- broader retrieval must not occur under containment
-- artifact search must not run when disabled
-- unsupported inputs must remain conservative
-- fallbacks must not overstate what happened
+- an old assistant question must not turn a later reply into a confirmation
+- restricted personas must not trigger broad memory retrieval
+- artifact search must not run when artifacts are disabled
+- unsupported intent classes must fall back conservatively
+- fallback traces must not claim that stronger behaviour occurred
 
 ### What we learned
 
-For governed systems, correctness is often defined as much by what does not happen as by what does.
+In governed systems, correctness includes proving what the system refuses to do.
 
 ## 7. A plan must be executable
 
 ### What happened
 
-AI-generated plans can be excellent prose and poor engineering instructions. They restate goals, summarize architecture, and list broad phases without identifying where the change belongs.
+AI-generated plans could sound thoughtful while leaving the real work unresolved. They summarized goals and architecture without identifying the files, contracts, or code paths that needed to change.
 
-That kind of plan feels productive while moving very little work forward.
+The next agent then repeated the same discovery work.
 
 ### What we changed
 
-A plan must now identify exact repositories, specification paths, likely files, implementation seams, ownership boundaries, non-goals, compatibility constraints, validation, PR order, and exit criteria.
+An execution plan now identifies:
 
-When the seam is already known, the agent performs a blocker-only preflight and then executes instead of writing another essay about the task.
+- the exact repositories and specification paths
+- the files or code seams likely to change
+- the required behaviour
+- service and data ownership
+- non-goals
+- backward-compatibility constraints
+- tests and smoke checks
+- PR order when several repositories are involved
+- a clear definition of done
+
+When the implementation seam is already known, the agent checks only for blockers and then starts the work.
 
 ### What we learned
 
-A useful plan should let another engineer begin work without repeating the discovery process.
+A plan is useful when another engineer can execute it without having to rediscover the task.
 
-## 8. Service boundaries matter
+## 8. Service boundaries need contracts
 
 ### What happened
 
-CCP spans runtime state, orchestration, memory, retrieval, and integrations. A feature could appear complete inside one service while another service quietly bypassed it.
+As CCP grew, important behaviour began crossing service boundaries. A feature could look complete inside one repository while another service ignored, weakened, or bypassed it.
 
-Persona containment was a good example: the orchestrator resolved the policy, but the memory service still accepted retrieval requests that were broader than the policy allowed.
+Persona containment exposed this clearly. The orchestrator resolved a restricted policy, but the memory service could still receive and execute a broader retrieval request.
 
 ### What we changed
 
-Cross-service work now names ownership explicitly and traces behaviour from the initiating request through every affected boundary. Related repositories use separate, ordered PRs rather than one vague cross-repository change.
+When behaviour crosses a service boundary, we define an explicit contract between the services. The contract states:
+
+- what data is passed
+- what each field means
+- which values are required or optional
+- which service owns each decision
+- where each rule is enforced
+- how errors and fallbacks behave
+- what compatibility must be preserved
+
+Changes to the contract are implemented in ordered PRs across the affected repositories. Tests cover both sides: the caller must send the right request, and the receiving service must honour it.
 
 ### What we learned
 
-In a distributed system, a correct policy object in one service does not guarantee correct behaviour across the system.
+A policy inside one service cannot govern a distributed system by itself. Cross-service behaviour needs a shared, tested contract.
 
 ## 9. Traces must tell the truth
 
 ### What happened
 
-A trace can be technically valid and still misleading. It may show that a policy was evaluated without showing whether it was enforced. It may describe a whole capability as unavailable even though one layer is active, or describe it as active when only guidance exists.
+A trace could report that a policy was evaluated without saying whether the policy changed execution. It could describe a capability as active when only guidance existed, or describe it as absent when one layer was already working.
+
+The trace looked clean while hiding the important distinction.
 
 ### What we changed
 
-Trace language now distinguishes prevention, suppression, guidance, and deferral. Observability must report what the system actually did, not the architecture we hope to finish later.
+Trace fields now describe concrete events and outcomes. They distinguish among:
+
+- a decision being calculated
+- a request being changed
+- an operation being blocked
+- results being filtered
+- a fallback being used
+- work remaining deferred
+
+Tests check trace output for negative and fallback paths as well as successful ones.
 
 ### What we learned
 
-A misleading trace is not harmless documentation debt. It can hide a design gap from the next engineer, reviewer, or agent.
+Observability is part of correctness. A trace must describe what the system did, not what the architecture intended.
 
 ## 10. Do not manufacture conformance
 
 ### What happened
 
-When code and specifications disagreed, one easy path was to edit the specification until the implementation appeared correct.
+When code and specifications disagreed, there were two easy but wrong responses:
 
-The opposite failure was also possible: implement every detailed example even when the actual required behaviour was already satisfied in a simpler way.
+- rewrite the specification until the code appeared correct
+- implement every detailed example even when the required behaviour was already satisfied another way
+
+Both approaches optimize for visual agreement rather than correctness.
 
 ### What we changed
 
-Each conformance finding is classified. It may require an implementation correction, a specification correction, a deliberate deferral, an accepted extension, rejection, or more evidence.
+Every conformance finding receives an explicit disposition:
+
+- implementation defect
+- specification defect or ambiguity
+- accepted implementation variation
+- deliberate deferral
+- rejected finding
+- more evidence required
+
+The disposition must explain the required behaviour and the evidence behind the decision.
 
 ### What we learned
 
-Conformance is not visual similarity between a document and a codebase. It is an evidence-backed decision about required behaviour.
+Conformance means satisfying the intended contract. It does not mean making the code resemble every example in a document.
 
 ## 11. Defense-in-depth is not the primary control
 
 ### What happened
 
-The orchestrator could remove unsafe artifact results before building the final prompt. That protected the model from seeing them, but the memory service had already searched for them.
+The orchestrator could remove unsafe memory results before sending context to the model. That protected the final prompt, but the memory service had already performed the unsafe search.
 
-The final output looked contained. The operation itself was not.
+The output was contained. The operation was not.
 
 ### What we changed
 
-Unsafe retrieval is now prevented at the request boundary where possible. Result suppression remains valuable as a second layer, but it is described honestly as defense-in-depth.
+The primary control now acts before retrieval: the request is restricted so the unsafe search is never issued.
+
+Result filtering remains as a second safety layer in case an upstream or downstream defect still produces disallowed data.
 
 ### What we learned
 
-Cleaning up an unsafe result is not the same as preventing the unsafe action.
+Cleaning up the result of an unsafe operation is not the same as preventing the operation.
 
 ## 12. A contract field is not a capability
 
 ### What happened
 
-The memory request model already contained an `include_artifacts` field. On paper, callers could disable artifact retrieval.
+A request model already contained an `include_artifacts` field. Its presence suggested that callers could disable artifact retrieval.
 
-The active retrieval path did not actually honour the field before issuing the search.
+The active retrieval path ignored the field and searched artifacts anyway.
 
 ### What we changed
 
-Contract validation now follows the full execution path. Tests assert not only that a field exists or is passed, but that downstream work is skipped or changed as intended.
+Contract tests now follow important fields through the full execution path:
+
+1. the caller sets the field correctly
+2. the receiving service parses it correctly
+3. the runtime changes its behaviour
+4. the prohibited downstream operation does not occur
+5. the trace reports the outcome accurately
 
 ### What we learned
 
-A schema can advertise a capability the runtime does not possess. Interfaces are promises; execution paths determine whether the promise is real.
+A field in a schema is only a promise. The capability exists when the runtime honours that promise.
 
 ## 13. Abstractions must preserve behaviour
 
 ### What happened
 
-Intent arbitration was folded into broader interaction governance. The architectural consolidation was sensible, but the persisted runtime projection collapsed useful distinctions into a small set of generic values.
+Intent arbitration was folded into a broader interaction-governance component. The consolidation reduced duplication, but the new runtime representation collapsed several useful intent distinctions into generic values.
 
-The abstraction removed duplication and also removed information.
+The architecture became simpler while the behaviour became less expressive.
 
 ### What we changed
 
-We kept the folded architecture while expanding only the intent classes that existing signals could support deterministically.
+We listed the distinctions that downstream consumers actually use, then preserved those distinctions in the folded design. We only added categories that could be derived reliably from existing signals.
+
+Tests verify the externally visible behaviour rather than the number or names of internal components.
 
 ### What we learned
 
-Combining systems is not successful merely because there are fewer components. The new abstraction must preserve the behaviour downstream consumers need.
+An abstraction is successful when it simplifies implementation without erasing behaviour that other parts of the system depend on.
 
 ## 14. Not every taxonomy belongs in the MVP
 
 ### What happened
 
-Once a specification listed a comprehensive taxonomy, it was tempting to implement every category immediately. Some categories had no reliable signal, no current consumer, or no reason to exist outside the conceptual model.
+Specifications sometimes described complete taxonomies before the runtime had reliable signals or consumers for every category.
+
+Implementing the entire list would have required guessing classifications that the system could not actually support.
 
 ### What we changed
 
-Taxonomies are split into three groups:
+Each taxonomy is divided into three groups:
 
-- supported now
-- derivable with a small deterministic extension
-- not currently derivable and therefore deferred
+- supported now with existing evidence
+- derivable with a small deterministic rule
+- unsupported and explicitly deferred
 
-Unsupported cases fall back conservatively instead of being guessed into existence.
+Unsupported cases use a conservative fallback instead of a fabricated classification.
 
 ### What we learned
 
@@ -332,164 +410,192 @@ A complete conceptual model does not require a complete first implementation.
 
 ### What happened
 
-An older assistant question could influence a later user message even after another user turn had intervened. The words still existed in history, but they were no longer the immediate conversational context.
+An old assistant question could affect a later user reply even after another user message had intervened.
 
-This caused stale questions to produce false confirmation or continuation classifications.
+The relevant words were still in the conversation history, but they were no longer the immediate conversational context. This produced false confirmation and continuation classifications.
 
 ### What we changed
 
-Those dialogue acts now use the immediately preceding assistant message for the evaluated user turn. Regression tests cover intervening messages explicitly.
+Dialogue acts that depend on an assistant prompt now examine only the immediately preceding assistant message for the user turn being evaluated.
+
+Regression tests include interrupted and interleaved conversations so stale questions cannot leak forward.
 
 ### What we learned
 
-Conversation history is not one flat bag of text. Order and adjacency are part of meaning.
+Conversation history is ordered interaction, not a bag of text. Adjacency changes meaning.
 
 ## 16. Do not build the future too early
 
 ### What happened
 
-Detailed specs naturally suggested dedicated tables, endpoints, service seams, and extension hooks. Many of them were plausible future needs. Few of them were necessary for the current behaviour.
+Specifications described plausible future tables, endpoints, services, and extension points. They were useful design notes, but many had no current consumer.
 
-Building them early would have created more persistence, migration, and ownership complexity before there was a consumer.
+Building them immediately would have added migrations, persistence, and ownership complexity without improving current behaviour.
 
 ### What we changed
 
-Future-state structures remain documented but deferred until replay, auditing, evaluation, or operational needs justify them. Current runtime state and summarized events are used where they are sufficient.
+Future-state designs remain documented as proposals. They move into implementation only when a concrete need appears, such as replay, auditing, evaluation, or a real integration seam.
+
+Until then, we use the smallest existing structure that satisfies the current contract.
 
 ### What we learned
 
-Good architecture leaves room for the future. It does not require constructing the future in advance.
+Good architecture preserves room for future change. It does not pre-build every possible future.
 
 ## 17. Agent quota is an engineering resource
 
 ### What happened
 
-Coding agents repeatedly spent expensive context rediscovering the same repository structure, rewriting approved plans, and narrating work that had already been decided.
+Coding agents spent expensive context repeatedly reading repository structure, rewriting approved plans, and explaining decisions that were already settled.
 
-The actual implementation received whatever attention remained.
+The implementation then received whatever budget remained.
 
 ### What we changed
 
-We introduced verified execution briefs, blocker-only preflights, same-session execution, and delta-based review fixes. Full planning is reserved for genuinely unresolved architecture.
+We introduced shorter execution briefs that contain the already-verified context an agent needs. The agent performs a blocker check, executes in the same session, and addresses review feedback as a focused delta rather than restarting the task.
+
+Full replanning is reserved for unresolved architecture or newly discovered constraints.
 
 ### What we learned
 
-Agent quota should be spent on inspection, reasoning, implementation, and validation—not ceremonial replanning.
+Agent quota should be spent on inspection, reasoning, implementation, and validation—not repeated ceremony.
 
 ## 18. Agent workflows belong in source control
 
 ### What happened
 
-Rules accumulated across conversations: read the specs, inspect current code, preserve service ownership, use bounded PRs, distinguish review from execution, test negative paths, and report exact evidence.
+Important working rules accumulated in conversations: read the specs, inspect current code, preserve service boundaries, use bounded PRs, test negative paths, and report exact evidence.
 
-Those rules were too important to depend on anyone remembering the latest prompt.
+Those rules changed over time and were too important to depend on the latest prompt being copied correctly.
 
 ### What we changed
 
-The workflow became a versioned repository artifact that coding agents must read before working on CCP.
+The repository now contains a versioned agent operating guide. It defines the required workflow for planning, implementation, review, validation, and closeout.
+
+Changes to the workflow are reviewed like other engineering changes, and agents are instructed to read it before working in the repository.
 
 ### What we learned
 
-Once an AI-assisted process becomes repeatable, its operating contract belongs beside the code and specifications it governs.
+Once an AI-assisted process becomes repeatable, its rules are part of the engineering system and belong in source control.
 
 ## 19. Merged is not the same as finished
 
 ### What happened
 
-A PR could merge while local branches remained, repositories stayed on stale commits, documentation lagged behind, or the working tree contained unrelated changes.
+A pull request could merge while local repositories remained on old commits, temporary branches survived, documentation lagged behind, or deferred gaps were no longer visible.
 
-The feature was in `main`, but the workflow was not actually closed.
+The code had landed, but the work was not truly closed.
 
 ### What we changed
 
-Merge and closeout have explicit meanings. Merge includes cleanup and returning to a clean, current `main`. Closeout verifies merged evidence, tests, smoke results, and remaining deviations.
+We separated two checkpoints:
+
+- **merge complete:** the PR is merged, branches are cleaned up, and repositories are back on a clean, current `main`
+- **closeout complete:** merged code, tests, smoke checks, documentation, and remaining deviations have been independently verified
 
 ### What we learned
 
-Completion includes repository state and institutional memory, not just code landing.
+Completion includes the final repository state and the record of what remains—not only the merge event.
 
 ## 20. Deferred work must remain visible
 
 ### What happened
 
-Once a blocking issue was fixed, nearby gaps could disappear from attention or become loosely described as part of the completed capability.
+Once the immediate blocker was fixed, nearby gaps could disappear from attention or be loosely described as part of the completed capability.
 
-This was especially risky for domain-aware retrieval and tool-boundary enforcement, where partial infrastructure existed but the true enforcement seam did not.
+This happened when infrastructure existed for a feature but the real enforcement or integration seam did not yet exist.
 
 ### What we changed
 
-Closeout documents list residual deferred work explicitly, along with the reason and dependency that prevents honest completion.
+Every closeout records deferred work with:
+
+- the unfinished behaviour
+- why it is not complete
+- the dependency or missing seam
+- the specification or backlog reference that keeps it visible
+
+Completed documentation does not describe deferred behaviour as active.
 
 ### What we learned
 
-Deferral is a sound engineering decision only when the unfinished boundary remains visible.
+Deferral is a valid decision only when the unfinished boundary remains explicit and discoverable.
 
 ## 21. Keep project history out of production concepts
 
 ### What happened
 
-Agents naturally wanted to include phase numbers, cluster numbers, historical narratives, and roadmap notes in runtime names and production READMEs.
+Phase numbers, cluster numbers, specification IDs, and historical explanations began appearing in runtime names and operational documentation.
 
-Those details helped explain how the system arrived here. They did not help operate the current system.
+They explained how the system was built, but they did not explain how the current system behaves.
 
 ### What we changed
 
-Planning history stays in planning artifacts. Production repositories describe present behaviour. Specification IDs remain references for humans, not runtime domain concepts.
+Planning history stays in plans, retrospectives, and closeout records. Production code and operational documentation use domain terms that describe current behaviour.
+
+Specification IDs remain references for people and tools; they do not become runtime concepts unless the runtime genuinely needs them.
 
 ### What we learned
 
-The history of a system and the current truth of a system are both valuable. They should not be the same document.
+The history of a system and the operating model of a system are different kinds of information. Keep both, but keep them separate.
 
 ## 22. Personal systems still need data hygiene
 
 ### What happened
 
-CCP is built around personal use, which made real names and real-life examples convenient during design and testing.
+Because CCP began as a personal system, real names and real-life examples were convenient during design and testing.
 
-Convenience becomes a problem when tests, specifications, or examples are later published.
+Those details became a liability when artifacts were reused, reviewed, or prepared for public release.
 
 ### What we changed
 
-Implementation artifacts use neutral examples and avoid personal names, private events, and sensitive context unless the data itself is the subject under test.
+Specifications, tests, examples, and fixtures now use neutral data unless personal information is specifically required by the test.
+
+Before publication, we review files for names, private events, credentials, local paths, and other identifying context.
 
 ### What we learned
 
-A personal project can still become public, reusable, or shared. Data hygiene should begin before that transition.
+A personal project can become public or reusable later. Data hygiene is cheaper when it starts early.
 
 ## 23. Human-maintained counters eventually collide
 
 ### What happened
 
-Specification IDs looked unique within a phase while already being used elsewhere in the repository. The project had grown beyond what anyone could reliably scan from memory.
+A new specification ID appeared available within one directory but was already used elsewhere in the repository.
+
+The namespace had grown beyond what a person or conversation summary could reliably track.
 
 ### What we changed
 
-ID allocation now uses a repository-wide scan. A registry records the current range, but the automated scan remains authoritative because the registry can become stale.
+A repository-wide script scans all specification IDs and reports duplicates. A registry helps people choose the next ID, but the scan of the actual repository remains authoritative.
+
+The check runs before new specifications are accepted.
 
 ### What we learned
 
-A counter is a convenience. Uniqueness requires checking the actual namespace.
+A counter is a convenience. Uniqueness requires checking the real namespace.
 
 ## 24. The correction process also needs correction
 
 ### What happened
 
-The first conformance review contained findings that were partly valid and partly overstated. Later documentation work accidentally rewrote a historical recommendation while appending new closeout evidence.
+A conformance audit contained findings that were partly valid and partly overstated. Later, a documentation update accidentally changed the wording of an earlier historical finding while adding new closeout evidence.
 
-The governance artifacts designed to prevent drift were themselves vulnerable to drift. Naturally.
+The process created to prevent drift was itself capable of drifting.
 
 ### What we changed
 
-Audits are treated as inputs rather than authority. Historical findings are preserved, new evidence is appended carefully, and corrections are reviewed against both the original record and current implementation.
+Audits are treated as evidence to review, not final authority. Corrections preserve the original finding, add the new evidence separately, and state the final disposition clearly.
+
+Changes to historical records are kept narrow and reviewed against both the earlier document and the current implementation.
 
 ### What we learned
 
-No layer of the process is above review—not the code, not the specification, not the audit, and not the rules governing the agents.
+No layer is above verification: not the code, the specification, the audit, or the process used to correct them.
 
 ## Closing thought
 
-The common thread through all of these lessons is not that AI coding agents are unreliable. Human engineers also misremember requirements, overread diagrams, trust summaries, build abstractions too early, and write optimistic completion notes.
+These lessons are not based on the idea that AI coding agents fail in uniquely mysterious ways. Humans also misremember requirements, overread diagrams, trust summaries, build abstractions too early, and write optimistic completion notes.
 
-AI changes the scale and speed of those failures. A plausible mistake can travel from plan to implementation to tests to documentation in one session, with consistent vocabulary and impressive confidence.
+AI changes the speed and consistency with which those mistakes can spread. One plausible misunderstanding can move from plan to implementation to tests to documentation in a single session, using the same confident vocabulary throughout.
 
-The answer is not to remove the agent from the process. It is to build a process in which confidence is cheap and evidence is required.
+The answer is not to remove the agent from the process. It is to build a process in which claims are cheap, contracts are explicit, and evidence is required.
