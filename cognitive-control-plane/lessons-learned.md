@@ -448,17 +448,30 @@ Good architecture preserves room for future change. It does not pre-build every 
 
 Coding agents spent expensive context repeatedly reading repository structure, rewriting approved plans, and explaining decisions that were already settled.
 
+As the system expanded across repositories, the cost of a single implementation also increased. Cross-service changes required more contract tracing, negative tests, validation, and review correction. One difficult pull request could consume a large share of the available coding-agent capacity and reduce the number of changes that could be completed that week.
+
 The implementation then received whatever budget remained.
 
 ### What we changed
 
-We introduced shorter execution briefs that contain the already-verified context an agent needs. The agent performs a blocker check, executes in the same session, and addresses review feedback as a focused delta rather than restarting the task.
+We separated the work into distinct responsibilities:
 
-Full replanning is reserved for unresolved architecture or newly discovered constraints.
+- architectural and technical direction resolves the specifications, service boundaries, acceptance cases, non-goals, and pull-request order
+- the coding agent receives a closed execution brief and performs the bounded implementation, tests, validation, and self-review
+- independent review checks the actual diff and evidence rather than trusting the implementation agent's completion report
+- the human retains product judgment, merge authority, and decisions when evidence or requirements conflict
+
+The coding agent now performs a blocker-only preflight and executes in the same session when the contract is resolved. It addresses related review findings as one focused correction pass rather than restarting the task or handling comments one at a time.
+
+If implementation reveals an unresolved requirement, a wider service seam, or a new architectural decision, the agent stops and returns the issue for replanning instead of spending implementation quota designing the missing contract interactively.
+
+Routine repository administration is kept outside scarce implementation sessions unless it is part of the requested task.
 
 ### What we learned
 
-Agent quota should be spent on inspection, reasoning, implementation, and validation—not repeated ceremony.
+Agent quota is capacity, not merely a usage limit. It must be allocated to the work for which the coding agent is most valuable.
+
+The separation between architecture, bounded implementation, independent review, and human judgment began as an informal working style. As the project grew, it became an engineering operating model. Better prompts reduce waste, but sustainable throughput also requires deciding which agent should do which work and preventing expensive implementation sessions from becoming open-ended design conversations.
 
 ## 18. Agent workflows belong in source control
 
