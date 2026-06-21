@@ -79,6 +79,7 @@ Specifications reduce ambiguity, but they are not magically precise. They must s
 22. [Personal systems still need data hygiene](#22-personal-systems-still-need-data-hygiene)
 23. [Human-maintained counters eventually collide](#23-human-maintained-counters-eventually-collide)
 24. [The correction process also needs correction](#24-the-correction-process-also-needs-correction)
+25. [Implementation activity is not specification satisfaction](#25-implementation-activity-is-not-specification-satisfaction)
 
 ---
 
@@ -604,6 +605,30 @@ Changes to historical records are kept narrow and reviewed against both the earl
 ### What we learned
 
 No layer is above verification: not the code, the specification, the audit, or the process used to correct them.
+
+## 25. Implementation activity is not specification satisfaction
+
+### What happened
+
+Clusters were treated as delivered because code existed, tests passed, pull requests merged, and completion reports described the work as finished.
+
+Those signals could all agree while still proving only the narrower behaviour that had been implemented. Scaffolding, trace-only behaviour, manual paths, and partial integrations were allowed to stand in for the mandatory behaviour described by the specifications.
+
+The process was internally consistent but externally wrong: implementation, tests, review, and reporting could reinforce the same narrowed interpretation.
+
+### What we changed
+
+Requirement status is now assessed directly against the original specification and concrete evidence. Each mandatory requirement is recorded as:
+
+PASS when the implementation and relevant positive, negative, fallback, and cross-service evidence satisfy it
+GAP when the behaviour is missing, partial, unproven, or incorrectly composed
+AMENDED only when the specification itself is deliberately changed with explicit human approval
+
+A merged correction does not promote its own gap to PASS. A later review pass begins again from the original requirement and verifies the merged behaviour. Clusters cannot close, and subsequent clusters cannot begin, while mandatory requirements in the claimed scope remain unresolved.
+
+### What we learned
+
+Code production is not progress toward a specification unless the resulting behaviour is shown to satisfy it. Implementation activity creates claims; requirement-level evidence earns completion.
 
 ## Closing thought
 
