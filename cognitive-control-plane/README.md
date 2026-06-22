@@ -24,7 +24,9 @@ I’m building CCP because I’m looking for a more precise way to handle memory
 
 Many assistants treat recall partly as a salience problem, using signals such as recency, reinforcement, or inferred importance. Those might be useful, but I’m also interested in preserving the distinction between what is currently salient and what remains valid.
 
-For example, a system might remember that a vehicle requires a certain type of fuel, but retrieve it less reliably months later because it was only mentioned once. I would rather treat that as a durable fact that remains available until it is corrected or replaced.
+For example, a server might show a brief spike in errors that looks harmless on its own. But if similar spikes appeared before several earlier outages, the historical pattern changes how the new event should be interpreted.
+
+I’m looking for a system that can retrieve those earlier incidents, connect them to the current one, and show why the pattern was considered relevant. It should preserve the difference between a single anomaly, a recurring pattern, and a conclusion that has not yet been established.
 
 There are already services that offer persistent memory, integrations, and personal assistants. The trade-off is that the most sensitive part of the system, including memory, identity, history, and connected data, often becomes tied to that service.
 
