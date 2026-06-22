@@ -18,6 +18,18 @@ The project focuses on problems that appear after a chatbot becomes a long-lived
 
 The core idea is that useful long-lived AI systems are not only a model. They need explicit runtime state, governed memory, durable contracts, surface-aware policy, and traceable decision boundaries around the model.
 
+## Why I’m building CCP
+
+I’m building CCP because I’m looking for a more precise way to handle memory in long-lived AI systems, while keeping that memory private and portable.
+
+Many assistants treat recall partly as a salience problem, using signals such as recency, reinforcement, or inferred importance. Those might be useful, but I’m also interested in preserving the distinction between what is currently salient and what remains valid.
+
+For example, a system might remember that a vehicle requires a certain type of fuel, but retrieve it less reliably months later because it was only mentioned once. I would rather treat that as a durable fact that remains available until it is corrected or replaced.
+
+There are already services that offer persistent memory, integrations, and personal assistants. The trade-off is that the most sensitive part of the system, including memory, identity, history, and connected data, often becomes tied to that service.
+
+CCP is my attempt to keep that data in systems I own, while allowing models and interfaces to change around it. I am not trying to rebuild every part of an assistant. I am trying to make sure the part that represents me remains private, inspectable, and mine.
+
 ## Architecture thesis
 
 Most LLM prototypes collapse too much into prompt text:
