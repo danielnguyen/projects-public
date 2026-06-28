@@ -2,6 +2,8 @@
 
 Cognitive Control Plane (CCP) is a specification-first architecture for durable, governed, stateful LLM systems.
 
+Its central value is **evidence-governed knowledge**: LLM output is treated as a fallible claim, not as authoritative truth. Generated claims should not become durable memory, world state, or action authority without traceable evidence, explicit validation, and governed lifecycle controls.
+
 The project focuses on problems that appear after a chatbot becomes a long-lived system:
 
 - model routing and fallback
@@ -31,6 +33,20 @@ I’m looking for a system that can retrieve those earlier incidents, connect th
 There are already services that offer persistent memory, integrations, and personal assistants. The trade-off is that the most sensitive part of the system, including memory, identity, history, and connected data, often becomes tied to that service.
 
 CCP is my attempt to keep that data in systems I own, while allowing models and interfaces to change around it. I am not trying to rebuild every part of an assistant. I am trying to make sure the part that represents me remains private, inspectable, and mine.
+
+## Evidence-governed knowledge
+
+CCP separates three things that LLM products often collapse together:
+
+- what the model generated
+- what the available evidence supports
+- what the system is permitted to treat as authoritative
+
+Those are not the same object.
+
+A generated claim must not acquire authority merely because it is fluent, repeated, recent, or convenient. The surrounding system should preserve provenance, uncertainty, and conflict; apply explicit acceptance rules; and support rejection, supersession, correction, replay, and audit.
+
+This makes the LLM one replaceable producer and consumer of claims inside a governed knowledge system. The control plane—not the model—owns durability, policy, evidence, and the boundaries that determine when information may be trusted or acted upon.
 
 ## Architecture thesis
 
