@@ -6,7 +6,7 @@ This repository is organized as a portfolio of project areas rather than a singl
 
 ## Projects
 
-- [`cognitive-control-plane/`](cognitive-control-plane/) — specification-first architecture for durable, governed, stateful LLM systems.
+- [`cognitive-control-plane/`](cognitive-control-plane/) — specification-first architecture for durable, governed, stateful LLM systems, centered on evidence-governed knowledge.
 
 ## Layout
 
