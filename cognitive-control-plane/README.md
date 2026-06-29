@@ -90,6 +90,15 @@ agent-workflow/
   rules for AI coding agents and spec-driven implementation
 ```
 
+## Implementation repositories
+
+CCP is implemented across four services:
+
+- [Basic Memory Store (BMS)](https://github.com/danielnguyen/basic-memory-store) — durable memory, retrieval, provenance, and lifecycle
+- [Chat Orchestrator (CO)](https://github.com/danielnguyen/chat-orchestrator) — request orchestration, prompt assembly, routing, and response governance
+- [Cognitive Runtime (CR)](https://github.com/danielnguyen/cognitive-runtime) — runtime state, world state, companion policy, and behavioral governance
+- [Data Source Aggregator (DSA)](https://github.com/danielnguyen/data-source-aggregator) — read-only access to structured personal and external data sources
+
 ## Starting points
 
 Recommended first reads:
