@@ -71,37 +71,21 @@ surface input
 
 This lets the model remain replaceable while the surrounding system owns durability, policy, privacy, evidence, and behavioral consistency.
 
-## Broader than enhanced RAG
+## More than retrieval
 
-Parts of CCP overlap with enhanced retrieval-augmented generation:
+CCP includes many of the things people associate with advanced RAG: semantic retrieval, artifact search, ranking, context budgeting, freshness checks, provenance, and model routing. Those are important parts of the system, but they are not the whole system.
 
-- semantic and artifact retrieval
-- candidate ranking and filtering
-- context budgeting
-- freshness and provenance handling
-- policy-aware prompt assembly
-- model and provider routing
+Retrieval mostly answers: **what should the model see for this request?** CCP also needs to answer what the system currently knows, whether that knowledge is still valid, which context belongs to this user and conversation, what may be disclosed, and what should be remembered or acted upon afterward.
 
-Those capabilities form the system's information-acquisition layer, but they are not the whole system.
+A strong retrieval pipeline might find the right document. CCP still has to decide whether the document is stale, whether it conflicts with newer information, whether it is private, and whether a claim based on it has enough support to become durable memory or action authority.
 
-Enhanced RAG primarily asks: **what context should the model receive for this request?** CCP also asks:
+That is why I think of retrieval as one layer inside CCP rather than the definition of CCP itself. The broader system also owns memory, runtime state, identity, policy, authority, and the evidence left behind after the model responds.
 
-- What does the system currently know, and what remains uncertain or disputed?
-- Which information is durable, stale, superseded, private, or restricted?
-- Which identity, relationship, conversation, and world-state context applies?
-- Which model or provider is appropriate for the request?
-- What is the system permitted to disclose, remember, recommend, or execute?
-- What evidence and decision trace should survive after the response?
+## Where agents fit
 
-CCP therefore treats retrieval as one subsystem inside a broader governed cognitive runtime. Memory, policy, identity, authority, execution, and evidence remain outside the model and outside any single retrieval pipeline.
+CCP is not designed as an agentic-first system, and that is intentional. Agents are useful when a task genuinely benefits from a model choosing its own sequence of steps: searching several sources, breaking down a problem, using tools, checking results, and adjusting along the way.
 
-## Compatibility with agentic evolution
-
-CCP is not designed as an agentic-first system. Agents are useful when a model needs to choose and revise a sequence of steps: searching several sources, decomposing a problem, invoking tools, checking results, or continuing until a bounded task is complete.
-
-That kind of agency is an **execution strategy**, not the identity of the cognitive system itself.
-
-A future CCP request could be routed through any of these modes:
+That does not mean every conversation needs to become an agent loop. A request might be handled by a single model response, a predictable workflow, or a bounded agent, depending on the work involved.
 
 ```text
 user request
@@ -110,23 +94,13 @@ user request
   -> bounded agent loop
 ```
 
-In an agent loop, the model may propose the next retrieval step or action. CCP should still retain control over:
-
-- which capabilities exist
-- whether the active persona and surface may use them
-- risk and authority decisions
-- privacy and disclosure limits
-- confirmation requirements
-- actual connector execution
-- post-action verification
-- evidence capture, replay, and audit
-- step, token, time, and cost limits
+When an agent is useful, it can decide what step to try next. CCP should still decide which capabilities exist, whether the agent may use them, when confirmation is required, what actually gets executed, how the result is verified, what information may leave the system, and how much time or cost the task is allowed to consume.
 
 The architectural principle is:
 
 > **CCP should govern agents; CCP does not need to become one giant agent.**
 
-This separation allows future agent runtimes to be added as another orchestration mode without replacing the existing foundations. Task state, step budgets, pause or resume behavior, cancellation, and agent-loop traces can be introduced later while durable memory, policy, authority, execution, and evidence remain stable control-plane responsibilities.
+This means agent support can be added later without rebuilding the rest of the system around it. CCP would need additional concepts such as task state, step limits, pause and resume, cancellation, and agent-loop traces. Those are extensions to the orchestration layer. Durable memory, policy, authority, execution, and evidence can remain where they already belong.
 
 ## Repository map
 
@@ -176,4 +150,4 @@ This public repository is a curated publication channel. It contains settled or 
 
 ## License
 
-Apache License 2.0.
+Apache License 2.0
