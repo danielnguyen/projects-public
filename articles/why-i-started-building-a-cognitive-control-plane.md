@@ -1,16 +1,14 @@
 # Why I Started Building a Cognitive Control Plane
 
-*I was tired of being the system that remembered everything*
+*Building durable context around language models*
 
-I started building the Cognitive Control Plane because I was tired of repeating myself.
+I started building the Cognitive Control Plane after repeatedly running into the same limitation: useful context did not carry cleanly from one conversation to the next.
 
 The problem was not that language models could not follow a conversation. Within a single session, they were often remarkably capable. They could absorb a large amount of context, reason across it, and help me work through difficult technical and personal problems.
 
 The problem appeared when the conversation ended.
 
-A later session would begin with reconstruction. I would explain the project again, restate decisions we had already made, recover constraints that had fallen out of context, and correct summaries that were almost right but not quite. Even when some memory existed, I still had to remember what the system had forgotten, notice what it had distorted, and supply the history behind why a decision mattered.
-
-The model could help with the work, but the continuity of the work still depended on me.
+A later session would begin with reconstruction. I would explain the project again, restate decisions we had already made, recover constraints that had fallen out of context, and correct summaries that were almost right but not quite. Even when some memory existed, I still had to notice what the system had forgotten or distorted and supply the history behind why a decision mattered.
 
 What I wanted was not simply a chatbot with a longer transcript. I wanted a durable record of context: a system that could preserve decisions, evidence, corrections, preferences, and the reasoning behind them, then retrieve the right pieces when they became relevant again.
 
@@ -126,18 +124,14 @@ CCP adds structure around each part of that equation. It determines which contex
 
 The model remains central, but it is not asked to be the database, policy engine, identity boundary, auditor, and executor all at once.
 
-## What I was actually trying to stop repeating
+## The practical goal
 
-The visible frustration was having to explain the same project again. The deeper frustration was that I remained responsible for continuity even while using systems that appeared to have memory.
+The visible problem was having to reconstruct project context across conversations. More broadly, I was still responsible for tracking which summaries were outdated, which decisions had been superseded, what evidence supported a conclusion, and which parts of the accumulated history belonged in a new request.
 
-I had to remember which summary was outdated. I had to notice when a prior decision had been flattened into a preference. I had to reintroduce the evidence behind conclusions. I had to decide which parts of my history belonged in a new conversation and which did not.
-
-In effect, I was the control plane.
-
-CCP is an attempt to move that burden into an explicit system without surrendering ownership of the underlying record. My data remains in systems I control. Relevant context is retrieved and assembled for the current request. The model can be selected according to the task rather than carrying the entire identity and history of the assistant inside one provider.
+CCP is an attempt to move those responsibilities into an explicit system without surrendering ownership of the underlying record. My data remains in systems I control. Relevant context is retrieved and assembled for the current request. The model can be selected according to the task rather than carrying the entire identity and history of the assistant inside one provider.
 
 The immediate goal is personal and practical: an AI system that can continue work across time without requiring me to reconstruct its understanding at the beginning of every conversation.
 
-But building that honestly requires more than better recall. It requires a durable record that knows the difference between history and truth, between relevance and permission, and between what a model can say and what the system should trust.
+Building that honestly requires more than better recall. It requires a durable record that knows the difference between history and truth, between relevance and permission, and between what a model can say and what the system should trust.
 
 That is the problem the Cognitive Control Plane is meant to solve.
