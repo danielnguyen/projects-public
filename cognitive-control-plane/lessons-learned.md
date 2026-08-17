@@ -80,6 +80,17 @@ Specifications reduce ambiguity, but they are not magically precise. They must s
 23. [Human-maintained counters eventually collide](#23-human-maintained-counters-eventually-collide)
 24. [The correction process also needs correction](#24-the-correction-process-also-needs-correction)
 25. [Implementation activity is not specification satisfaction](#25-implementation-activity-is-not-specification-satisfaction)
+26. [Examples are probes, not features](#26-examples-are-probes-not-features)
+27. [Interpret question shape, not phrase vocabulary](#27-interpret-question-shape-not-phrase-vocabulary)
+28. [Separate interpretation from authority](#28-separate-interpretation-from-authority)
+29. [Vary acceptance across dimensions, not one golden sentence](#29-vary-acceptance-across-dimensions-not-one-golden-sentence)
+30. [Test legal awkward values](#30-test-legal-awkward-values)
+31. [Cross-service compatibility needs real producer-consumer proof](#31-cross-service-compatibility-needs-real-producer-consumer-proof)
+32. [Provider compatibility is a runtime contract](#32-provider-compatibility-is-a-runtime-contract)
+33. [Observability should identify the failed boundary without disclosing data](#33-observability-should-identify-the-failed-boundary-without-disclosing-data)
+34. [Fail closed, then debug upstream](#34-fail-closed-then-debug-upstream)
+35. [Production reproduction belongs in acceptance for real external boundaries](#35-production-reproduction-belongs-in-acceptance-for-real-external-boundaries)
+36. [The capability is open-ended interrogation over governed data](#36-the-capability-is-open-ended-interrogation-over-governed-data)
 
 ---
 
@@ -629,6 +640,205 @@ A merged correction does not promote its own gap to PASS. A later review pass be
 ### What we learned
 
 Code production is not progress toward a specification unless the resulting behaviour is shown to satisfy it. Implementation activity creates claims; requirement-level evidence earns completion.
+
+## 26. Examples are probes, not features
+
+### What happened
+
+A natural production question exposed a chain of source-discovery, interpretation, evidence, aggregation, and cross-service compatibility defects. The concrete wording was useful because it forced the whole system to operate on a real request that had not been designed as a test case.
+
+The risk was treating the nouns in that request as the feature. A system that succeeds only because production code learns the motivating topic, source, or field name has solved the example rather than the capability.
+
+### What we changed
+
+We describe the reusable behavior independently from the motivating question: discover the bounded source, interpret the operation, establish authority, acquire enough evidence, evaluate sufficiency, and execute a supported deterministic operation where appropriate.
+
+Examples remain fixtures and probes. They do not become hidden product vocabulary.
+
+### What we learned
+
+A useful generalization check is simple: replace the example's subject matter with materially different subject matter while keeping the same required behavior. If shared code must change again, the implementation is probably overfit.
+
+## 27. Interpret question shape, not phrase vocabulary
+
+### What happened
+
+Deterministic lexical matching worked for explicit names and obvious phrases but became brittle as normal language varied. Supporting each new wording with more aliases, regular expressions, and keyword tables would have turned natural conversation into a disguised query language.
+
+### What we changed
+
+Semantic interpretation maps open-ended language onto a bounded set of supported operation shapes. Deterministic fast paths remain useful for explicit selectors and exact identities, but long-tail wording does not require a hand-maintained phrase dictionary.
+
+The operation vocabulary grows when CCP gains a reusable capability, not merely when a new sentence appears.
+
+### What we learned
+
+User language can be effectively unbounded while the executable capability set remains deliberately bounded.
+
+## 28. Separate interpretation from authority
+
+### What happened
+
+A language model was useful for inferring what a novel request probably meant, but the same probabilistic output could not safely establish that a source existed, authorize access to it, declare evidence sufficient, or permit a factual conclusion.
+
+### What we changed
+
+CCP separates semantic interpretation from authority:
+
+> **Probabilistic interpretation; deterministic authority.**
+
+A semantic component may propose bounded source candidates and operation hints. The authoritative runtime validates those proposals against the actual inventory, policy, scope, capabilities, and evidence requirements before they can affect execution.
+
+### What we learned
+
+Novel-language understanding and factual authority are different responsibilities. Separating them lets the system remain conversational without making model confidence an authorization mechanism.
+
+## 29. Vary acceptance across dimensions, not one golden sentence
+
+### What happened
+
+A composed test could prove the intended architecture for one neutral request while production still introduced legitimate variations that the fixture never exercised.
+
+A single successful sentence therefore risked becoming a golden path rather than evidence of a general capability.
+
+### What we changed
+
+Capability tests vary independent dimensions such as:
+
+- paraphrase and wording;
+- subject domain;
+- explicit versus implicit source identity;
+- operation shape;
+- field wording versus configured schema names;
+- one versus several plausible sources;
+- complete versus partial evidence;
+- irrelevant decoy sources.
+
+The invariant should remain stable while the surface language and data domain change.
+
+### What we learned
+
+Test families should ask whether CCP solves a class of problems, not whether it recognizes a collection of favored sentences.
+
+## 30. Test legal awkward values
+
+### What happened
+
+A production Data Source Aggregator response was valid and complete, but Chat Orchestrator rejected its opaque source reference because a legitimate worksheet name contained an internal space. The controlled fixture happened to use a simpler reference and therefore never exposed the mismatch.
+
+### What we changed
+
+Producer-consumer tests include valid-but-inconvenient values: ordinary internal spaces, punctuation, quoted names, boundary lengths, optional nullability where contractual, and other legal shapes that simplistic validators often reject accidentally.
+
+These are distinct from malformed-input tests. The purpose is to prove that a strict consumer implements the producer's actual contract rather than a narrower imagined one.
+
+### What we learned
+
+Strict validation should mean exactly as strict as the supported contract, not stricter than the producer.
+
+## 31. Cross-service compatibility needs real producer-consumer proof
+
+### What happened
+
+Individual producer and consumer models could each pass their own tests while composition still failed. Several defects appeared only when the output of one real service crossed into the strict model of another.
+
+### What we changed
+
+For important cross-service contracts, at least one compatibility proof uses the real producer output and the real consumer parser or client. Unit fixtures remain valuable, but they do not substitute for this boundary proof.
+
+### What we learned
+
+Two internally correct services do not automatically form a correct distributed contract.
+
+## 32. Provider compatibility is a runtime contract
+
+### What happened
+
+The semantic-provider path encountered several independent production assumptions: a logical model route was not exposed by the deployed proxy, a structured-output schema used a keyword the provider dialect rejected, hidden reasoning consumed a small completion budget, and legitimate proxy envelope metadata exceeded the consumer's allowlist.
+
+None of these failures changed the intended architecture, but each prevented that architecture from operating against the real provider stack.
+
+### What we changed
+
+Provider-backed capabilities include explicit compatibility evidence for:
+
+- deployed model routing;
+- the provider's supported structured-output dialect;
+- response-envelope shape;
+- practical completion and reasoning-token behavior;
+- refusal, timeout, and malformed-response handling.
+
+### What we learned
+
+A provider abstraction is only real when its wire contract has been exercised against the provider configuration that will actually run it.
+
+## 33. Observability should identify the failed boundary without disclosing data
+
+### What happened
+
+Early production failures collapsed into generic dependency errors. The system failed safely, but the operator could not tell whether the problem was routing, provider output, source acquisition, response validation, or later policy.
+
+Dumping raw prompts, source contents, or provider responses would have made diagnosis easier at the cost of privacy.
+
+### What we changed
+
+Request-correlated structural diagnostics report closed events and failure classes: which boundary started, completed, or failed; what structural state was reached; and which validation category rejected the response.
+
+When a deeper diagnostic was needed, it printed model field locations, types, counts, and contract metadata while deliberately excluding evidence values and user content.
+
+### What we learned
+
+Useful observability explains *where and why the contract failed*. It does not require exposing the data that crossed the boundary.
+
+## 34. Fail closed, then debug upstream
+
+### What happened
+
+A downstream sufficiency decision correctly withheld a conclusion because the required evidence had not been admitted. At first glance that could look like an overly conservative policy decision.
+
+The real defect was earlier: an otherwise successful upstream response had been rejected by a strict consumer contract, so the evidence legitimately appeared unavailable downstream.
+
+### What we changed
+
+When a material requirement fails, diagnosis traces backward through the acquisition chain to the first incorrect boundary. Policy is not loosened merely because the final symptom is a withheld answer.
+
+### What we learned
+
+Fail-closed behavior should not be blamed for upstream transport, parsing, or compatibility defects. Fix the first incorrect boundary rather than weakening the authority layer that noticed the missing evidence.
+
+## 35. Production reproduction belongs in acceptance for real external boundaries
+
+### What happened
+
+Hosted composed validation repeatedly proved the intended service composition, yet several defects depended on properties of the real environment: provider schema dialect, proxy metadata, model reasoning-token behavior, deployed model routing, and legitimate production data shapes.
+
+These were not arguments against CI. They were evidence that certain contracts could not be fully simulated by local fixtures alone.
+
+### What we changed
+
+Where acceptance depends on a real provider dialect, deployment configuration, or production-shaped source contract, the rollout includes a bounded post-deployment reproduction using the same governed path and correlated request identity.
+
+This remains a complement to unit, integration, replay, and composed testing rather than a replacement for them.
+
+### What we learned
+
+The closer a requirement is to an external runtime boundary, the more important it is to prove that boundary as it actually exists.
+
+## 36. The capability is open-ended interrogation over governed data
+
+### What happened
+
+A successful deterministic aggregate answer could easily be mistaken for the completed feature. The number itself was incidental. The important result was that the user could ask a natural question whose exact wording and subject matter had not been encoded into the generic path.
+
+### What we changed
+
+We evaluate the system in terms of reusable primitives: source discovery, bounded semantic interpretation, typed scope, evidence planning, governed acquisition, sufficiency, deterministic operations where possible, and controlled conclusion release.
+
+New questions should map onto those capabilities when supported. Unsupported operations should remain explicitly unsupported rather than being approximated by phrase-specific logic or an answer model.
+
+### What we learned
+
+CCP should not know every question in advance. It should know how to interpret questions it did not anticipate, map them onto capabilities it deliberately supports, discover the relevant governed evidence, and fail clearly when the capability or evidence genuinely does not exist.
 
 ## Closing thought
 
