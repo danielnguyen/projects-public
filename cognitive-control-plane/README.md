@@ -34,6 +34,32 @@ There are already services that offer persistent memory, integrations, and perso
 
 CCP is my attempt to keep that data in systems I own, while allowing models and interfaces to change around it. I am not trying to rebuild every part of an assistant. I am trying to make sure the part that represents me remains private, inspectable, and mine.
 
+## One durable agent, disposable context windows
+
+CCP is intended to make the assistant’s continuity independent of any one chat thread, model session, or provider context window.
+
+A chat thread is an interaction record and a useful local continuity scope. It is not the assistant’s memory container, identity boundary, or complete cognitive state. The product should feel like one durable relationship even when the implementation uses multiple threads, surfaces, providers, or model calls.
+
+The intended model is:
+
+```text
+durable memory + current governed state + authorized sources
+        ↓ retrieve what matters for this turn
+bounded inference context
+        ↓
+replaceable model call
+        ↓
+new messages, claims, state, and evidence return to durable storage
+```
+
+A model context window is therefore a temporary **working set**, not the system of record. Context limits, summarization, token budgets, or provider quotas may change what is materialized for one inference call, but they must not silently become memory deletion or the authoritative definition of what the assistant knows.
+
+When an older detail is omitted from one prompt, it should remain retrievable from durable state. When a later correction supersedes an earlier belief, retrieval should preserve that lifecycle rather than resurrecting a stale summary merely because it survived in a previous chat. Replacing a model or moving from web to voice should not require the user to manually resynchronize the assistant.
+
+A useful shorthand for this direction is:
+
+> **The model is transient. The relationship and cognitive state are durable.**
+
 ## Evidence-governed knowledge
 
 CCP separates three things that LLM products often collapse together:

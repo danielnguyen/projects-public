@@ -85,3 +85,20 @@ Privacy, restraint, action authority, intent classification, and answer calibrat
 ### 5. The model should be replaceable
 
 The surrounding control plane owns state, memory, policy, and traceability. The model contributes reasoning and language generation, but it should not be the only place system behavior lives.
+
+### 6. The context window is a working set, not memory
+
+Each model call should receive a bounded projection of the durable system state that is useful for the current turn: the current request, relevant recent interaction, durable memories and claims, current runtime/world state, authorized source evidence, and applicable policy.
+
+The inference context may be aggressively bounded, summarized, or rebuilt as models and token budgets change. Those optimizations must not redefine the durable state itself. Material omitted from one prompt remains retrievable; corrected or superseded state keeps its lifecycle; moving to a new chat, surface, provider, or model does not require the user to manually recreate the assistant’s understanding.
+
+This gives CCP a stable continuity model:
+
+```text
+durable state
+    -> retrieve / project a bounded working set
+    -> disposable model inference
+    -> persist new governed state and evidence
+```
+
+Conversation threads remain useful for ordered interaction and local continuity, but they are not independent memory silos or separate assistant identities.
