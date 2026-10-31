@@ -20,6 +20,55 @@ The project focuses on problems that appear after a chatbot becomes a long-lived
 
 The core idea is that useful long-lived AI systems are not only a model. They need explicit runtime state, governed memory, durable contracts, surface-aware policy, and traceable decision boundaries around the model.
 
+## The value proposition
+
+CCP's goal is not to add another chatbot interface. It is to make an AI assistant more dependable **over time and across the boundaries of any one model, provider, conversation, or device**. The underlying value comes from deciding which information is current, which claims deserve trust, and what actions the assistant is allowed to take — while keeping those decisions inspectable and under the system owner's control.
+
+In practical terms, the intended advantages are:
+
+| Need | CCP's approach | Benefit to the person using it |
+| --- | --- | --- |
+| Continuity beyond a chat window | Keep durable identity, memory, corrections, and current state outside disposable model context | Starting another conversation or changing interfaces should not require manually rebuilding the assistant's understanding. |
+| Trustworthy long-term knowledge | Keep evidence, inference, contradictions, freshness, and accepted claims distinct | An outdated statement should not silently regain authority just because an old summary was retrieved. |
+| Privacy and ownership | Govern access and select task-relevant context before sending it to a provider | Fewer unrelated records need to cross a model-provider boundary, while the durable source of truth can remain under the owner's control. |
+| Consistency across surfaces | Reuse canonical identity and conversation ownership while applying surface-specific behavior policy | Chat, voice, and wearable clients can behave appropriately without becoming competing versions of the assistant. |
+| Safer actions and delegation | Keep permission, confirmation, scope, and evidence rules outside the agent's own reasoning loop | An agent can choose how to work without deciding for itself whether it is authorized to act. |
+| Freedom to change models | Treat hosted and local models as replaceable inference components | Model upgrades or provider changes need not force a migration of identity, long-term memory, and policy. |
+
+These are **architectural goals and design contracts**, not a claim that every capability is already complete or that CCP has demonstrated superior real-world accuracy, latency, or operating cost.
+
+### A concrete example: a corrected fact stays corrected
+
+Suppose an assistant records that a service runs version A. Later, a deployment record establishes that it runs version B. Months afterward, an old conversation mentioning version A becomes relevant to a troubleshooting question.
+
+A typical retrieval result might contain both statements and leave the model to infer which one is current. CCP's intended control plane instead preserves the evidence and lifecycle: version A was once valid, version B superseded it, and the assistant must distinguish historical context from current state. If the deployment evidence is missing or stale, it should qualify the conclusion rather than manufacture certainty.
+
+The benefit is not that CCP has invented temporal memory. It is that **source validity, current-state authority, and the eventual answer are governed together** rather than relying solely on prompt instructions.
+
+## Why compare complete systems, not product counts?
+
+Existing products already address important parts of this problem. [Letta](https://docs.letta.com/concepts/stateful-agents) supports persistent agents across conversations; [Graphiti](https://www.getzep.com/platform/graphiti/) supports temporal facts and invalidation; [OpenClaw](https://docs.openclaw.ai/concepts/memory-architecture) documents provenance-aware memory controls; [LangGraph](https://github.com/langchain-ai/docs/blob/main/src/oss/langgraph/persistence.mdx) supports persistent and resumable agent execution. These are substantial capabilities, not trivial substitutes.
+
+One way to build a comparable assistant is to assemble those kinds of components. Another is to define a common control plane whose storage, runtime, orchestration, and retrieval services share a consistent model of identity, claims, policy, and authority.
+
+A collection of mature products can reduce the amount of infrastructure one must write or operate. But it can still require substantial integration to reconcile:
+
+- what each component believes is the **current** user, conversation, or agent identity;
+- which retrieved facts are merely candidates versus accepted knowledge;
+- how privacy and source authority travel across product boundaries;
+- who authorizes tool effects, reconciles uncertain outcomes, and stores the evidence; and
+- how upgrades, state migration, failures, and changing providers affect continuity.
+
+CCP's architectural bet is that **explicit shared contracts may be simpler to reason about than custom translations between several independently designed state and policy models**, even when the resulting CCP codebase contains multiple services. This is a whole-system complexity hypothesis, not a measured conclusion or a claim that commercial systems cannot satisfy the same requirements.
+
+For a self-operated project, the right comparison includes **infrastructure, integration, correctness, and ongoing maintenance**, alongside usable features. A third-party stack may prove simpler or more economical; CCP should be evaluated against that complete alternative, not insulated from comparison.
+
+## What would make the case convincing?
+
+The architecture should earn its complexity through observed behavior. Meaningful evidence would include correct cross-session and cross-surface continuation, demonstrably respected corrections and stale-source boundaries, trustworthy action approvals, less irrelevant context disclosed to model providers, and acceptable operational cost and maintenance effort.
+
+The aim is an assistant that is **useful to live with**, not an architecture that is only impressive to diagram. Performance and cost savings should be reported when measured against equivalent tasks — not inferred from service boundaries alone.
+
 ## Why I’m building CCP
 
 I’m building CCP because I’m looking for a more precise way to handle memory in long-lived AI systems, while keeping that memory private and portable.
