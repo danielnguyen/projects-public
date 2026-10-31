@@ -1,95 +1,54 @@
 # Cognitive Control Plane
 
-Cognitive Control Plane (CCP) is a specification-first architecture for durable, governed, stateful LLM systems.
+Imagine an AI assistant that remembers the decisions you've made together, the reasons behind them, and the evidence that changed your mind. You can pick up a conversation months later, move from your desk to your phone, or try a newer model while carrying that understanding forward.
 
-Its central value is **evidence-governed knowledge**: LLM output is treated as a fallible claim, not as authoritative truth. Generated claims should not become durable memory, world state, or action authority without traceable evidence, explicit validation, and governed lifecycle controls.
+**That's the experience I want to build.**
 
-The project focuses on problems that appear after a chatbot becomes a long-lived system:
+Cognitive Control Plane (CCP) is my exploration of a durable foundation for a personal AI companion: one that can develop useful context over time, distinguish established knowledge from emerging conclusions, and act within boundaries that its owner understands and controls.
 
-- model routing and fallback
-- artifact storage and retrieval
-- memory governance
-- retrieval hardening
-- conversational state
-- current world-state modeling
-- memory hygiene and staleness
-- privacy and surface sensitivity
-- behavior traceability
-- answer calibration
-- delegated work and action boundaries
-
-The core idea is that useful long-lived AI systems are not only a model. They need explicit runtime state, governed memory, durable contracts, surface-aware policy, and traceable decision boundaries around the model.
-
-## The value proposition
-
-CCP's goal is not to add another chatbot interface. It is to make an AI assistant more dependable **over time and across the boundaries of any one model, provider, conversation, or device**. The underlying value comes from deciding which information is current, which claims deserve trust, and what actions the assistant is allowed to take — while keeping those decisions inspectable and under the system owner's control.
-
-In practical terms, the intended advantages are:
-
-| Need | CCP's approach | Benefit to the person using it |
-| --- | --- | --- |
-| Continuity beyond a chat window | Keep durable identity, memory, corrections, and current state outside disposable model context | Starting another conversation or changing interfaces should not require manually rebuilding the assistant's understanding. |
-| Trustworthy long-term knowledge | Keep evidence, inference, contradictions, freshness, and accepted claims distinct | An outdated statement should not silently regain authority just because an old summary was retrieved. |
-| Privacy and ownership | Govern access and select task-relevant context before sending it to a provider | Fewer unrelated records need to cross a model-provider boundary, while the durable source of truth can remain under the owner's control. |
-| Consistency across surfaces | Reuse canonical identity and conversation ownership while applying surface-specific behavior policy | Chat, voice, and wearable clients can behave appropriately without becoming competing versions of the assistant. |
-| Safer actions and delegation | Keep permission, confirmation, scope, and evidence rules outside the agent's own reasoning loop | An agent can choose how to work without deciding for itself whether it is authorized to act. |
-| Freedom to change models | Treat hosted and local models as replaceable inference components | Model upgrades or provider changes need not force a migration of identity, long-term memory, and policy. |
-
-These are **architectural goals and design contracts**, not a claim that every capability is already complete or that CCP has demonstrated superior real-world accuracy, latency, or operating cost.
-
-### A concrete example: a corrected fact stays corrected
-
-Suppose an assistant records that a service runs version A. Later, a deployment record establishes that it runs version B. Months afterward, an old conversation mentioning version A becomes relevant to a troubleshooting question.
-
-A typical retrieval result might contain both statements and leave the model to infer which one is current. CCP's intended control plane instead preserves the evidence and lifecycle: version A was once valid, version B superseded it, and the assistant must distinguish historical context from current state. If the deployment evidence is missing or stale, it should qualify the conclusion rather than manufacture certainty.
-
-The benefit is not that CCP has invented temporal memory. It is that **source validity, current-state authority, and the eventual answer are governed together** rather than relying solely on prompt instructions.
-
-## Why compare complete systems, not product counts?
-
-Existing products already address important parts of this problem. [Letta](https://docs.letta.com/concepts/stateful-agents) supports persistent agents across conversations; [Graphiti](https://www.getzep.com/platform/graphiti/) supports temporal facts and invalidation; [OpenClaw](https://docs.openclaw.ai/concepts/memory-architecture) documents provenance-aware memory controls; [LangGraph](https://github.com/langchain-ai/docs/blob/main/src/oss/langgraph/persistence.mdx) supports persistent and resumable agent execution. These are substantial capabilities, not trivial substitutes.
-
-One way to build a comparable assistant is to assemble those kinds of components. Another is to define a common control plane whose storage, runtime, orchestration, and retrieval services share a consistent model of identity, claims, policy, and authority.
-
-A collection of mature products can reduce the amount of infrastructure one must write or operate. But it can still require substantial integration to reconcile:
-
-- what each component believes is the **current** user, conversation, or agent identity;
-- which retrieved facts are merely candidates versus accepted knowledge;
-- how privacy and source authority travel across product boundaries;
-- who authorizes tool effects, reconciles uncertain outcomes, and stores the evidence; and
-- how upgrades, state migration, failures, and changing providers affect continuity.
-
-CCP's architectural bet is that **explicit shared contracts may be simpler to reason about than custom translations between several independently designed state and policy models**, even when the resulting CCP codebase contains multiple services. This is a whole-system complexity hypothesis, not a measured conclusion or a claim that commercial systems cannot satisfy the same requirements.
-
-For a self-operated project, the right comparison includes **infrastructure, integration, correctness, and ongoing maintenance**, alongside usable features. A third-party stack may prove simpler or more economical; CCP should be evaluated against that complete alternative, not insulated from comparison.
-
-## What would make the case convincing?
-
-The architecture should earn its complexity through observed behavior. Meaningful evidence would include correct cross-session and cross-surface continuation, demonstrably respected corrections and stale-source boundaries, trustworthy action approvals, less irrelevant context disclosed to model providers, and acceptable operational cost and maintenance effort.
-
-The aim is an assistant that is **useful to live with**, not an architecture that is only impressive to diagram. Performance and cost savings should be reported when measured against equivalent tasks — not inferred from service boundaries alone.
+> **The model is transient. The relationship and cognitive state are durable.**
 
 ## Why I’m building CCP
 
-I’m building CCP because I’m looking for a more precise way to handle memory in long-lived AI systems, while keeping that memory private and portable.
+As AI becomes more capable, I want it to become more dependable in the parts of life and work that unfold over months and years.
 
-Many assistants treat recall partly as a salience problem, using signals such as recency, reinforcement, or inferred importance. Those might be useful, but I’m also interested in preserving the distinction between what is currently salient and what remains valid.
+A long-running project accumulates decisions, experiments, reversals, and lessons. A personal assistant accumulates context about what matters to its owner, which information is sensitive, and how circumstances evolve. I want an assistant that can carry those histories forward and use them thoughtfully.
 
-For example, a server might show a brief spike in errors that looks harmless on its own. But if similar spikes appeared before several earlier outages, the historical pattern changes how the new event should be interpreted.
+Consider an engineering incident: a brief spike in errors might look harmless by itself. But the same pattern may have appeared before earlier outages. A useful assistant should be able to surface those incidents, connect their evidence to the current situation, and explain the strength and limits of the connection. Months later, it should remember the conclusion we reached and incorporate what we've learned since.
 
-I’m looking for a system that can retrieve those earlier incidents, connect them to the current one, and show why the pattern was considered relevant. It should preserve the difference between a single anomaly, a recurring pattern, and a conclusion that has not yet been established.
+That quality of continuity is what motivates me. I want to be able to ask *“Why did we make that decision?”* and receive an answer grounded in the actual history. I want corrections to endure. I want an assistant that can help me think more clearly because it understands the path we've taken.
 
-There are already services that offer persistent memory, integrations, and personal assistants. The trade-off is that the most sensitive part of the system, including memory, identity, history, and connected data, often becomes tied to that service.
+I also want that context to remain mine. Memory, identity, history, and connected sources are worth protecting. By keeping them in infrastructure I control, I can choose what to share with a model, change providers as the technology advances, and inspect how the assistant arrived at a conclusion.
 
-CCP is my attempt to keep that data in systems I own, while allowing models and interfaces to change around it. I am not trying to rebuild every part of an assistant. I am trying to make sure the part that represents me remains private, inspectable, and mine.
+## What CCP is designed to make possible
+
+**Continuity that grows with use.** Conversations, decisions, and relevant context form a durable history. Starting a new session or changing devices should feel like continuing the same work.
+
+**Memory with an evidence trail.** Facts, observations, inferences, and corrections retain their sources and lifecycle. The assistant can explain what supports a conclusion, what changed, and where uncertainty remains.
+
+**One companion across many surfaces.** Chat, voice, wearables, and other interfaces can share an identity and history while adapting how and when they communicate. The same companion might offer a detailed explanation at a desk and a brief, timely update while on the move.
+
+**Privacy and ownership.** The system selects relevant context and applies disclosure policy before sending information to an inference provider. The owner retains control over durable state and the ability to choose local or hosted models.
+
+**Freedom to evolve.** Models, interfaces, and agent frameworks will keep improving. CCP aims to preserve continuity while allowing those pieces to be replaced or upgraded independently.
+
+**Useful autonomy with clear authority.** Agents can research, plan, and execute bounded tasks. A governing runtime keeps approval, permissions, evidence, and resource limits tied to the owner's intent.
+
+These capabilities describe the direction of the project. Their implementation and acceptance advance through explicit specifications, tests, and composed-system evidence.
+
+## A corrected fact should stay corrected
+
+Imagine that an assistant remembers an application running version A. A deployment record later establishes that it has moved to version B. Several months later, an older discussion about version A is retrieved during troubleshooting.
+
+The assistant should understand the sequence: version A describes the past; the deployment record supports version B as the newer state. It can still use the older discussion to explain historical decisions while grounding its current recommendation in the newer evidence.
+
+This is the idea behind **evidence-governed knowledge**. CCP treats generated statements as claims that can be checked against their sources and accepted through a defined lifecycle. Provenance, freshness, conflicts, correction, and supersession become part of the assistant's lasting understanding.
+
+The result I am working toward is a companion that learns with discipline: retaining the useful history and remaining open to better evidence.
 
 ## One durable agent, disposable context windows
 
-CCP is intended to make the assistant’s continuity independent of any one chat thread, model session, or provider context window.
-
-A chat thread is an interaction record and a useful local continuity scope. It is not the assistant’s memory container, identity boundary, or complete cognitive state. The product should feel like one durable relationship even when the implementation uses multiple threads, surfaces, providers, or model calls.
-
-The intended model is:
+Each model call receives a focused working set assembled from the system's durable state.
 
 ```text
 durable memory + current governed state + authorized sources
@@ -101,66 +60,66 @@ replaceable model call
 new messages, claims, state, and evidence return to durable storage
 ```
 
-A model context window is therefore a temporary **working set**, not the system of record. Context limits, summarization, token budgets, or provider quotas may change what is materialized for one inference call, but they must not silently become memory deletion or the authoritative definition of what the assistant knows.
+Conversation threads preserve interaction history and immediate context. The durable system carries identity, accepted knowledge, current state, corrections, and source-backed conclusions across those threads.
 
-When an older detail is omitted from one prompt, it should remain retrievable from durable state. When a later correction supersedes an earlier belief, retrieval should preserve that lifecycle rather than resurrecting a stale summary merely because it survived in a previous chat. Replacing a model or moving from web to voice should not require the user to manually resynchronize the assistant.
-
-A useful shorthand for this direction is:
-
-> **The model is transient. The relationship and cognitive state are durable.**
+This separation makes it possible to select a smaller context for an ordinary request while keeping the broader history available for later retrieval. A change of provider or interface can draw on the same governed state.
 
 ## Evidence-governed knowledge
 
-CCP separates three things that LLM products often collapse together:
+CCP keeps distinct records of:
 
-- what the model generated
-- what the available evidence supports
-- what the system is permitted to treat as authoritative
+- what the model proposed or inferred;
+- what the available sources and observations support;
+- what the system has accepted as current, usable knowledge; and
+- which actions that knowledge is sufficient to authorize.
 
-Those are not the same object.
+The surrounding services own the rules for accepting, correcting, superseding, and retrieving claims. That makes the history inspectable and allows the assistant's conclusions to improve as the evidence evolves.
 
-A generated claim must not acquire authority merely because it is fluent, repeated, recent, or convenient. The surrounding system should preserve provenance, uncertainty, and conflict; apply explicit acceptance rules; and support rejection, supersession, correction, replay, and audit.
-
-This makes the LLM one replaceable producer and consumer of claims inside a governed knowledge system. The control plane—not the model—owns durability, policy, evidence, and the boundaries that determine when information may be trusted or acted upon.
+For me, this is the foundation of trust: an assistant capable of showing its work and updating its understanding.
 
 ## Architecture thesis
 
-Most LLM prototypes collapse too much into prompt text:
-
-```text
-user message + chat history + retrieved context + model = answer
-```
-
-CCP separates those concerns:
+CCP separates responsibilities so they can evolve behind shared contracts:
 
 ```text
 surface input
-  -> orchestration
-  -> runtime state
-  -> world state
-  -> memory/retrieval
-  -> governance policy
-  -> calibrated response
-  -> traceable output
+  -> chat orchestration
+  -> runtime and interaction policy
+  -> governed memory and world state
+  -> evidence and source access
+  -> context selection and model reasoning
+  -> calibrated response and traceable outcomes
 ```
 
-This lets the model remain replaceable while the surrounding system owns durability, policy, privacy, evidence, and behavioral consistency.
+- **Chat Orchestrator** coordinates requests, context assembly, model selection, and response delivery.
+- **Cognitive Runtime** governs interaction state, identity, behavior, capability permissions, and action policy.
+- **Basic Memory Store** retains conversations, artifacts, sources, and the lifecycle of durable knowledge.
+- **Data Source Aggregator** connects read-only sources under explicit retrieval and scope rules.
+- **Model providers and agent harnesses** contribute reasoning and task execution through replaceable interfaces.
+
+The goal is a coherent control plane whose services agree on identity, evidence, state, and authority.
+
+### Why the whole system matters
+
+There is impressive work already happening across this field. [Letta](https://docs.letta.com/concepts/stateful-agents) explores persistent agents and memory; [Graphiti](https://www.getzep.com/platform/graphiti/) models how facts and relationships evolve over time; [OpenClaw](https://docs.openclaw.ai/concepts/memory-architecture) brings together multi-channel assistants and provenance-aware memory controls; and [LangGraph](https://github.com/langchain-ai/docs/blob/main/src/oss/langgraph/persistence.mdx) provides durable, resumable agent workflows.
+
+These projects demonstrate how much of the foundation is becoming reusable. They also highlight the challenge that interests me most: making memory, identity, policy, and execution work together as **one dependable system**.
+
+A complete assistant may combine several mature products. Those components still need to agree on whose data they hold, which facts are current, what information can cross a boundary, and who can authorize an action. Integrating those shared responsibilities is itself an architectural undertaking.
+
+CCP is a bet that clearly defined ownership and shared contracts can make that full system easier to understand, adapt, and govern. I'm evaluating that bet against complete alternatives, including their infrastructure, integration work, correctness, and long-term maintenance.
 
 ## More than retrieval
 
-CCP includes many of the things people associate with advanced RAG: semantic retrieval, artifact search, ranking, context budgeting, freshness checks, provenance, and model routing. Those are important parts of the system, but they are not the whole system.
+Retrieval brings relevant information into view. CCP connects that information to durable memory, current-world understanding, source authority, sensitivity, and the purpose of the present request.
 
-Retrieval mostly answers: **what should the model see for this request?** CCP also needs to answer what the system currently knows, whether that knowledge is still valid, which context belongs to this user and conversation, what may be disclosed, and what should be remembered or acted upon afterward.
+A document may be relevant while describing an earlier version of reality. A personal memory may be important while remaining inappropriate to disclose on a particular interface. A recommendation may be plausible while its evidence is still incomplete.
 
-A strong retrieval pipeline might find the right document. CCP still has to decide whether the document is stale, whether it conflicts with newer information, whether it is private, and whether a claim based on it has enough support to become durable memory or action authority.
-
-That is why I think of retrieval as one layer inside CCP rather than the definition of CCP itself. The broader system also owns memory, runtime state, identity, policy, authority, and the evidence left behind after the model responds.
+CCP's runtime is designed to carry these distinctions through context assembly, reasoning, and response generation. The goal is an assistant that can make good use of what it knows, with a clear account of why that knowledge applies now.
 
 ## Where agents fit
 
-CCP is not designed as an agentic-first system, and that is intentional. Agents are useful when a task genuinely benefits from a model choosing its own sequence of steps: searching several sources, breaking down a problem, using tools, checking results, and adjusting along the way.
-
-That does not mean every conversation needs to become an agent loop. A request might be handled by a single model response, a predictable workflow, or a bounded agent, depending on the work involved.
+Some tasks need a quick answer. Others follow a predictable series of steps. Complex work may benefit from an agent that explores options, uses tools, checks results, and revises its plan.
 
 ```text
 user request
@@ -169,13 +128,21 @@ user request
   -> bounded agent loop
 ```
 
-When an agent is useful, it can decide what step to try next. CCP should still decide which capabilities exist, whether the agent may use them, when confirmation is required, what actually gets executed, how the result is verified, what information may leave the system, and how much time or cost the task is allowed to consume.
+CCP's intended delegation model lets an agent harness handle the mechanics of execution while the control plane governs the task's purpose, permissions, resource limits, evidence, and completion criteria.
 
-The architectural principle is:
+The principle is simple:
 
-> **CCP should govern agents; CCP does not need to become one giant agent.**
+> **CCP governs agents. The harnesses do the work.**
 
-This means agent support can be added later without rebuilding the rest of the system around it. CCP would need additional concepts such as task state, step limits, pause and resume, cancellation, and agent-loop traces. Those are extensions to the orchestration layer. Durable memory, policy, authority, execution, and evidence can remain where they already belong.
+This creates room to adopt better agent technology as it emerges while keeping the owner's authority and the companion's continuity in one place.
+
+## What success looks like
+
+I want CCP to become an assistant I can genuinely rely on in everyday use: one that recalls the right context, recognizes when information has changed, follows conversations across surfaces, respects attention and privacy, and carries useful work forward with appropriate safeguards.
+
+I also want the engineering choices to earn their keep. That means evaluating real tasks for response quality, evidence accuracy, continuity, latency, provider costs, and maintenance effort. A well-designed system should be rewarding to use and sustainable to operate.
+
+This repository shares the architecture, representative specifications, and lessons behind that journey.
 
 ## Repository map
 
@@ -221,7 +188,7 @@ Recommended first reads:
 
 ## Status
 
-This public repository is a curated publication channel. It contains settled or representative artifacts from a larger private working repository. It is not a full mirror of active implementation history, deployment configuration, backlog planning, or private operating context.
+This public repository is a curated publication of CCP's architectural direction and representative artifacts. Active implementation, deployment configuration, and detailed backlog management remain in the working repositories. The design is evolving through ongoing implementation, tests, and independent conformance review.
 
 ## License
 
