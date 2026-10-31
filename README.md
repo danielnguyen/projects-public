@@ -19,7 +19,6 @@ cognitive-control-plane/
   agent-workflow/
 
 personal-access-bridge/
-  milestones/
 
 PROJECTS.md
 LICENSE
