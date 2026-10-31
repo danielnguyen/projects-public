@@ -27,18 +27,6 @@ PAB is a step toward that experience: **a development partner that can carry wor
 5. **Keep collaborating.** New feedback can start another bounded task against the current PR head and update that same draft after fresh verification.
 6. **Choose when to merge.** The owner authorizes the final merge through GitHub. PAB's development and publication authority ends before merging.
 
-## A milestone: feedback all the way to merge
-
-On **October 30, 2026 (Toronto time)**, we completed a live demonstration of this workflow using a documentation change to Browser Trust Inspector, a browser-extension inspection project.
-
-The initial PAB task created a draft pull request. A second PAB task rewrote the README introduction to explain the project's purpose and benefits. A third task changed a single word in response to another conversational request. Both revisions updated the **same pull request**, with independent validation and review before publication. The owner then authorized a merge through the GitHub connector.
-
-**Three PAB tasks. One pull request. Two feedback revisions. An independently reviewed result, merged under human control.**
-
-The outcome matters because feedback remained a normal part of the conversation. Completing one coding task did not close the door on improving its pull request. Each follow-up began from the previously published head and produced another verifiable result.
-
-Read the [dated milestone record](milestones/2026-10-30-conversation-to-merge.md) for what was observed and what this demonstration establishes.
-
 ## Where the work goes next
 
 This acceptance demonstrated the complete feedback-to-merge experience on a tightly scoped documentation change. The next useful evidence will come from substantial source-code work, more complex feedback, and recovery from interrupted or failed execution.
