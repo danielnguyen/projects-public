@@ -7,6 +7,7 @@ This repository is organized as a portfolio of project areas rather than a singl
 ## Projects
 
 - [`cognitive-control-plane/`](cognitive-control-plane/) — specification-first architecture for durable, governed, stateful LLM systems, centered on evidence-governed knowledge.
+- [`personal-access-bridge/`](personal-access-bridge/) — a conversational development bridge that carries bounded coding work through testing, independent review, draft PRs, and feedback-driven revisions.
 
 ## Layout
 
@@ -16,6 +17,9 @@ cognitive-control-plane/
   specs/
   examples/
   agent-workflow/
+
+personal-access-bridge/
+  milestones/
 
 PROJECTS.md
 LICENSE
